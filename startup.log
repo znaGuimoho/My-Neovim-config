@@ -1,0 +1,10 @@
+
+Error detected while processing /home/znagui/.config/nvim/init.lua:
+E5113: Error while calling lua chunk: /home/znagui/.config/nvim/init.lua:9: Error cloning lazy.nvim:
+Cloning into '/home/znagui/.local/share/nvim/lazy/lazy.nvim'...
+
+stack traceback:
+	[C]: in function 'error'
+	/home/znagui/.config/nvim/init.lua:9: in main chunk
+
+E492: Not an editor command: Lazy
