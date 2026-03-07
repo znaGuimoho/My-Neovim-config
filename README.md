@@ -22,7 +22,7 @@ My personal Neovim configuration — a setup I've built and continue to refine f
 ~/.config/nvim/
 ├── init.lua              # Entry point
 └── lua/
-    ├── config/           # Core settings (options, keymaps, autocmds)
+    ├── core/           # Core settings (options, keymaps, autocmds)
     └── plugins/          # Plugin specs and configurations
 ```
 
