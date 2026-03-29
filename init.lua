@@ -17,12 +17,12 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 -- Import color theme based on environment variable NVIM_THEME
-local default_color_scheme = "nightfox"
+local default_color_scheme = "cyberdream"
 local env_var_nvim_theme = os.getenv("NVIM_THEME") or default_color_scheme
 
 -- Define a table of theme modules
 local themes = {
-	nightfox = "plugins.themes.nightfox",
+	cyberdream = "plugins.themes.cyberdream",
 	onedark = "plugins.themes.onedark",
 }
 
@@ -41,6 +41,7 @@ require("lazy").setup({
 	require("plugins.alpha"),
 	require("plugins.activites"),
 	require("plugins.flotingterminal"),
+	require("plugins.commant"),
 }, {
 	ui = {
 		-- If you have a Nerd Font, set icons to an empty table which will use the
