@@ -1,98 +1,162 @@
--- Treesitter configuration
+--[[
+--══════════════════════════════════════════════════════════════════════════════
+-- File: treesitter.lua
+-- Purpose: Configures Tree-sitter parsers, highlighting, text objects, and rainbow delimiters.
+-- Author: Mohammed
+--
+-- NOTE: Treesitter-textobjects keymaps are defined here because the plugin reads
+--       them from the setup table. Most other keymaps live in lua/core/keymaps.lua.
+--══════════════════════════════════════════════════════════════════════════════
+--]]
+
 return {
-	"nvim-treesitter/nvim-treesitter",
-	build = ":TSUpdate",
-	dependencies = {
-		"nvim-treesitter/nvim-treesitter-textobjects",
-	},
-	opts = {
-		-- A list of parser names, or "all"
-		ensure_installed = {
-			"bash",
-			"c",
-			"cpp",
-			"css",
-			"html",
-			"javascript",
-			"json",
-			"lua",
-			"markdown",
-			"markdown_inline",
-			"python",
-			"py",
-			"pyhton3",
-			"query",
-			"regex",
-			"rust",
-			"typescript",
-			"vim",
-			"vimdoc",
-			"yaml",
-		},
+  {
+    "nvim-treesitter/nvim-treesitter",
+    branch = "master",
+    build = ":TSUpdate",
+    event = { "BufReadPre", "BufNewFile" },
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter-textobjects",
+      "HiPhish/rainbow-delimiters.nvim",
+    },
 
-		-- Install parsers synchronously (only applied to `ensure_installed`)
-		sync_install = false,
+    --- Configures Tree-sitter parsers, highlighting, text objects, and rainbow delimiters.
+    config = function()
+      require("nvim-treesitter.configs").setup({
 
-		-- Automatically install missing parsers when entering buffer
-		auto_install = true,
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰏗 Parser Installation
+        -- ─────────────────────────────────────────────────────────────────────────────
+        ensure_installed = {
+          "bash",
+          "c",
+          "cpp",
+          "css",
+          "go",
+          "html",
+          "java",
+          "javascript",
+          "json",
+          "jsonc",
+          "lua",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "query",
+          "regex",
+          "rust",
+          "toml",
+          "tsx",
+          "typescript",
+          "vim",
+          "vimdoc",
+          "yaml",
+        },
+        sync_install = false,
+        auto_install = true,
 
-		highlight = {
-			enable = true,
-			-- Setting this to true will run `:h syntax` and tree-sitter at the same time.
-			-- Set this to `true` if you depend on 'syntax' being enabled (like for indentation).
-			-- Using this option may slow down your editor, and you may see some duplicate highlights.
-			-- Instead of true it can also be a list of languages
-			additional_vim_regex_highlighting = false,
-		},
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰭟 Highlight & Indent
+        -- ─────────────────────────────────────────────────────────────────────────────
+        highlight = {
+          enable = true,
+          additional_vim_regex_highlighting = false,
+        },
+        indent = {
+          enable = true,
+          disable = { "yaml" }, -- YAML indentation is often better handled by Vim
+        },
 
-		indent = {
-			enable = true,
-		},
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰘧 Incremental Selection
+        -- ─────────────────────────────────────────────────────────────────────────────
+        incremental_selection = {
+          enable = true,
+          keymaps = {
+            init_selection = "<CR>",
+            node_incremental = "<CR>",
+            scope_incremental = "<S-CR>",
+            node_decremental = "<BS>",
+          },
+        },
 
-		incremental_selection = {
-			enable = true,
-			keymaps = {
-				init_selection = "<CR>",
-				node_incremental = "<CR>",
-				scope_incremental = "<S-CR>",
-				node_decremental = "<BS>",
-			},
-		},
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰌵 Text Objects
+        -- ─────────────────────────────────────────────────────────────────────────────
+        textobjects = {
+          select = {
+            enable = true,
+            lookahead = true,
+            keymaps = {
+              ["af"] = "@function.outer",
+              ["if"] = "@function.inner",
+              ["ac"] = "@class.outer",
+              ["ic"] = "@class.inner",
+              ["aa"] = "@parameter.outer",
+              ["ia"] = "@parameter.inner",
+            },
+          },
+          move = {
+            enable = true,
+            set_jumps = true,
+            goto_next_start = {
+              ["]m"] = "@function.outer",
+              ["]]"] = "@class.outer",
+            },
+            goto_next_end = {
+              ["]M"] = "@function.outer",
+              ["]["] = "@class.outer",
+            },
+            goto_previous_start = {
+              ["[m"] = "@function.outer",
+              ["[["] = "@class.outer",
+            },
+            goto_previous_end = {
+              ["[M"] = "@function.outer",
+              ["[]"] = "@class.outer",
+            },
+          },
+          swap = {
+            enable = false, -- Disabled to avoid keymap conflicts; enable in keymaps.lua if desired
+          },
+        },
+      })
 
-		textobjects = {
-			select = {
-				enable = true,
-				lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
-				keymaps = {
-					-- You can use the capture groups defined in textobjects.scm
-					["af"] = "@function.outer",
-					["if"] = "@function.inner",
-					["ac"] = "@class.outer",
-					["ic"] = "@class.inner",
-					["aa"] = "@parameter.outer",
-					["ia"] = "@parameter.inner",
-				},
-			},
-			move = {
-				enable = true,
-				set_jumps = true, -- whether to set jumps in the jumplist
-				goto_next_start = {
-					["]m"] = "@function.outer",
-					["]]"] = "@class.outer",
-				},
-				goto_next_end = {
-					["]M"] = "@function.outer",
-					["]["] = "@class.outer",
-				},
-				goto_previous_start = {
-					["[m"] = "@function.outer",
-					["[["] = "@class.outer",
-				},
-				goto_previous_end = {
-					["[M"] = "@function.outer",
-					["[]"] = "@class.outer",
-				},
-			},
-		},
-	},
+      -- ─────────────────────────────────────────────────────────────────────────────
+      -- 󰔉 Rainbow Delimiters
+      -- ─────────────────────────────────────────────────────────────────────────────
+      local rainbow_delimiters = require("rainbow-delimiters")
+      vim.g.rainbow_delimiters = {
+        strategy = {
+          [""] = rainbow_delimiters.strategy["global"],
+          vim = rainbow_delimiters.strategy["local"],
+        },
+        query = {
+          [""] = "rainbow-delimiters",
+          lua = "rainbow-blocks",
+        },
+        priority = {
+          [""] = 110,
+          lua = 210,
+        },
+        highlight = {
+          "RainbowDelimiterRed",
+          "RainbowDelimiterYellow",
+          "RainbowDelimiterBlue",
+          "RainbowDelimiterOrange",
+          "RainbowDelimiterGreen",
+          "RainbowDelimiterViolet",
+          "RainbowDelimiterCyan",
+        },
+      }
+    end,
+  },
+
+  -- ─────────────────────────────────────────────────────────────────────────────
+  -- 󰑌 Playground
+  -- ─────────────────────────────────────────────────────────────────────────────
+  {
+    "nvim-treesitter/playground",
+    cmd = { "TSPlaygroundToggle", "TSHighlightCapturesUnderCursor" },
+  },
 }

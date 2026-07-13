@@ -1,129 +1,173 @@
--- Fuzzy Finder (files, lsp, etc)
-return {
-  'nvim-telescope/telescope.nvim',
-  -- branch = '0.1.x',
-  branch = 'master',
-  dependencies = {
-    'nvim-lua/plenary.nvim',
-    -- Fuzzy Finder Algorithm which requires local dependencies to be built.
-    -- Only load if `make` is available. Make sure you have the system
-    -- requirements installed.
-    {
-      'nvim-telescope/telescope-fzf-native.nvim',
-      build = 'make',
-      cond = function()
-        return vim.fn.executable 'make' == 1
-      end,
-    },
-    'nvim-telescope/telescope-ui-select.nvim',
-    'nvim-tree/nvim-web-devicons',
-  },
-  config = function()
-    local actions = require 'telescope.actions'
-    local builtin = require 'telescope.builtin'
+--[[
+--══════════════════════════════════════════════════════════════════════════════
+-- File: telescope.lua
+-- Purpose: Configures Telescope fuzzy finder with VS Code Quick Open ergonomics.
+-- Author: Mohammed
+--
+-- Provides:
+-- - Fast file, text, git, and diagnostic pickers
+-- - Native fzf sorter when available
+-- - Consistent vim.ui.select replacement via ui-select
+--
+-- All keymaps are defined in lua/core/keymaps.lua.
+--══════════════════════════════════════════════════════════════════════════════
+--]]
 
-    require('telescope').setup {
-      defaults = {
-        layout_strategy = 'horizontal',
-        layout_config = {
-          horizontal = {
-            prompt_position = 'bottom',
-            preview_width = 0.6,
-            width = { padding = 0 },
-            height = { padding = 0 },
-          },
-        },
-        mappings = {
-          i = {
-            ['<C-k>'] = actions.move_selection_previous, -- move to prev result
-            ['<C-j>'] = actions.move_selection_next, -- move to next result
-            ['<C-l>'] = actions.select_default, -- open file
-          },
-          n = {
-            ['q'] = actions.close,
-          },
-        },
-      },
-      pickers = {
-        find_files = {
-          file_ignore_patterns = { 'node_modules', '.git', '.venv' },
-          hidden = true,
-        },
-        buffers = {
-          initial_mode = 'normal',
-          sort_lastused = true,
-          -- sort_mru = true,
-          mappings = {
-            n = {
-              ['d'] = actions.delete_buffer,
-              ['l'] = actions.select_default,
-            },
-          },
-        },
-        marks = {
-          initial_mode = 'normal',
-        },
-        oldfiles = {
-          initial_mode = 'normal',
-        },
-      },
-      live_grep = {
-        file_ignore_patterns = { 'node_modules', '.git', '.venv' },
-        additional_args = function(_)
-          return { '--hidden' }
+return {
+  {
+    "nvim-telescope/telescope.nvim",
+    branch = "master",
+    cmd = "Telescope",
+    event = "VeryLazy",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      {
+        "nvim-telescope/telescope-fzf-native.nvim",
+        build = "make",
+        --- Only enable fzf-native when `make` is available on the system.
+        -- This avoids build failures on machines without a C compiler toolchain.
+        -- @return boolean true if `make` is executable.
+        cond = function()
+          return vim.fn.executable("make") == 1
         end,
       },
-      path_display = {
-        filename_first = {
-          reverse_directories = true,
-        },
-      },
-      extensions = {
-        ['ui-select'] = {
-          require('telescope.themes').get_dropdown(),
-        },
-      },
-      git_files = {
-        previewer = false,
-      },
-    }
+      "nvim-telescope/telescope-ui-select.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "ahmedkhalf/project.nvim",
+    },
 
-    -- Enable telescope fzf native, if installed
-    pcall(require('telescope').load_extension, 'fzf')
-    pcall(require('telescope').load_extension, 'ui-select')
+    -- ─────────────────────────────────────────────────────────────────────────────
+    -- 󰈔 Telescope Setup
+    -- ─────────────────────────────────────────────────────────────────────────────
 
-    vim.keymap.set('n', '<leader>sb', builtin.buffers, { desc = '[S]earch existing [B]uffers' })
-    vim.keymap.set('n', '<leader><tab>', builtin.buffers, { desc = '[S]earch existing [B]uffers' })
-    vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-    vim.keymap.set('n', '<leader>sm', builtin.marks, { desc = '[S]earch [M]arks' })
-    vim.keymap.set('n', '<leader>gf', builtin.git_files, { desc = 'Search [G]it [F]iles' })
-    vim.keymap.set('n', '<leader>gc', builtin.git_commits, { desc = 'Search [G]it [C]ommits' })
-    vim.keymap.set('n', '<leader>gcf', builtin.git_bcommits, { desc = 'Search [G]it [C]ommits for current [F]ile' })
-    vim.keymap.set('n', '<leader>gb', builtin.git_branches, { desc = 'Search [G]it [B]ranches' })
-    vim.keymap.set('n', '<leader>gs', builtin.git_status, { desc = 'Search [G]it [S]tatus (diff view)' })
-    vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
-    vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
-    vim.keymap.set('n', '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-    vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
-    vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
-    vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]resume' })
-    vim.keymap.set('n', '<leader>so', builtin.oldfiles, { desc = '[S]earch Recent Files' })
-    vim.keymap.set('n', '<leader>sds', function()
-      builtin.lsp_document_symbols {
-        symbols = { 'Class', 'Function', 'Method', 'Constructor', 'Interface', 'Module', 'Property' },
-      }
-    end, { desc = '[S]each LSP document [S]ymbols' })
-    vim.keymap.set('n', '<leader>s/', function()
-      builtin.live_grep {
-        grep_open_files = true,
-        prompt_title = 'Live Grep in Open Files',
-      }
-    end, { desc = '[S]earch [/] in Open Files' })
-    vim.keymap.set('n', '<leader>/', function()
-      -- You can pass additional configuration to telescope to change theme, layout, etc.
-      builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-        previewer = false,
+    --- Bootstrap Telescope defaults, pickers, and extensions.
+    config = function()
+      local actions = require("telescope.actions")
+
+      require("telescope").setup({
+        defaults = {
+
+          -- ─────────────────────────────────────────────────────────────────────────────
+          -- 󰒓 Options / Settings
+          -- ─────────────────────────────────────────────────────────────────────────────
+
+          prompt_prefix = " ",
+          selection_caret = " ",
+          -- Keep the matched filename visible even when paths are long.
+          path_display = { "filename_first" },
+          layout_strategy = "horizontal",
+          layout_config = {
+            horizontal = {
+              prompt_position = "bottom",
+              preview_width = 0.55,
+              width = 0.95,
+              height = 0.90,
+            },
+            vertical = {
+              mirror = false,
+              width = 0.95,
+              height = 0.90,
+            },
+          },
+
+          -- ─────────────────────────────────────────────────────────────────────────────
+          -- 󰌵 Keymaps
+          -- ─────────────────────────────────────────────────────────────────────────────
+
+          mappings = {
+            i = {
+              ["<C-j>"] = actions.move_selection_next,
+              ["<C-k>"] = actions.move_selection_previous,
+              ["<C-l>"] = actions.select_default,
+              ["<C-q>"] = actions.send_selected_to_qflist + actions.open_qflist,
+              ["<C-a>"] = actions.toggle_all,
+            },
+            n = {
+              ["q"] = actions.close,
+              ["<C-j>"] = actions.move_selection_next,
+              ["<C-k>"] = actions.move_selection_previous,
+              ["<C-l>"] = actions.select_default,
+            },
+          },
+
+          -- Skip generated/dependency directories so pickers stay fast and relevant.
+          file_ignore_patterns = {
+            "node_modules",
+            "%.git/",
+            "%.venv/",
+            "__pycache__/",
+            "%.mypy_cache/",
+            "%.pytest_cache/",
+            "%.ruff_cache/",
+            "target/",
+            "build/",
+            "dist/",
+          },
+
+          -- rg flags tuned for editor integration: no color, smart case, location metadata.
+          vimgrep_arguments = {
+            "rg",
+            "--color=never",
+            "--no-heading",
+            "--with-filename",
+            "--line-number",
+            "--column",
+            "--smart-case",
+            "--hidden",
+          },
+        },
+
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰈔 Picker Configurations
+        -- ─────────────────────────────────────────────────────────────────────────────
+
+        pickers = {
+          find_files = {
+            hidden = true,
+          },
+          live_grep = {
+            --- Append extra rg flags for live grep.
+            -- @return table List of additional ripgrep arguments.
+            additional_args = function()
+              return { "--hidden" }
+            end,
+          },
+          buffers = {
+            initial_mode = "normal",
+            sort_lastused = true,
+            mappings = {
+              n = {
+                ["d"] = actions.delete_buffer,
+                ["l"] = actions.select_default,
+              },
+            },
+          },
+          oldfiles = {
+            initial_mode = "normal",
+          },
+          marks = {
+            initial_mode = "normal",
+          },
+          git_files = {
+            previewer = false,
+          },
+        },
+
+        -- ─────────────────────────────────────────────────────────────────────────────
+        -- 󰏖 Extensions
+        -- ─────────────────────────────────────────────────────────────────────────────
+
+        extensions = {
+          ["ui-select"] = {
+            require("telescope.themes").get_dropdown({}),
+          },
+        },
       })
-    end, { desc = '[/] Fuzzily search in current buffer' })
-  end,
+
+      -- Load optional extensions safely so missing compiled binaries do not break startup.
+      pcall(require("telescope").load_extension, "fzf")
+      pcall(require("telescope").load_extension, "ui-select")
+      pcall(require("telescope").load_extension, "projects")
+    end,
+  },
 }

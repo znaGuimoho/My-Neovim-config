@@ -1,88 +1,44 @@
-require("core.options") -- Load general options
-require("core.keymaps") -- Load general keymaps
-require("core.snippets") -- Custom code snippets
+--[[
+--══════════════════════════════════════════════════════════════════════════════
+-- File: init.lua
+-- Purpose: Neovim configuration entry point.
+-- Author: Mohammed
+--
+-- Loads core settings first, then bootstraps lazy.nvim and loads all plugin
+-- specs. Core modules are loaded before plugins so that options, leader keys,
+-- and autocommands are available during plugin initialization.
+--══════════════════════════════════════════════════════════════════════════════
+--]]
 
--- Install package manager
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-	vim.fn.system({
-		"git",
-		"clone",
-		"--filter=blob:none",
-		"https://github.com/folke/lazy.nvim.git",
-		"--branch=stable", -- latest stable release
-		lazypath,
-	})
-end
-vim.opt.rtp:prepend(lazypath)
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 󰘧 Core Setup
+-- ─────────────────────────────────────────────────────────────────────────────
 
--- Import color theme based on environment variable NVIM_THEME
-local default_color_scheme = "cyberdream"
-local env_var_nvim_theme = os.getenv("NVIM_THEME") or default_color_scheme
+-- Load core modules before plugins so global state is ready for plugin specs.
+require("core.options")  -- Base options must exist before plugins read them
+require("core.keymaps")  -- Leader/global mappings must be defined early
+require("core.autocmds") -- Diagnostics and autocommands available during init
+require("core.lazy")     -- Bootstrap plugin manager after core state is ready
 
--- Define a table of theme modules
-local themes = {
-	cyberdream = "plugins.themes.cyberdream",
-	onedark = "plugins.themes.onedark",
-}
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 󰏖 Custom Commands
+-- ─────────────────────────────────────────────────────────────────────────────
 
--- Setup plugins
-require("lazy").setup({
-	require(themes[env_var_nvim_theme]),
-	require("plugins.telescope"),
-	require("plugins.treesitter"),
-	require("plugins.lsp"),
-	require("plugins.autocomplete"),
-	require("plugins.none-ls"),
-	require("plugins.lualine"),
-	require("plugins.bufferline"),
-	require("plugins.neotree"),
-	require("plugins.oil"),
-	require("plugins.alpha"),
-	require("plugins.activites"),
-	require("plugins.flotingterminal"),
-	require("plugins.commant"),
-}, {
-	ui = {
-		-- If you have a Nerd Font, set icons to an empty table which will use the
-		-- default lazy.nvim defined Nerd Font icons otherwise define a unicode icons table
-		icons = vim.g.have_nerd_font and {} or {
-			cmd = "⌘",
-			config = "🛠",
-			event = "📅",
-			ft = "📂",
-			init = "⚙",
-			keys = "🗝",
-			plugin = "🔌",
-			runtime = "💻",
-			require = "🌙",
-			source = "📄",
-			start = "🚀",
-			task = "📌",
-			lazy = "💤 ",
-		},
-	},
-})
+--- Toggle the custom floating terminal on demand.
+-- Lazily loads `util.terminal` only when the command is actually invoked.
+vim.api.nvim_create_user_command("FolwtingCommand", function()
+  require("util.terminal").toggle()
+end, {})
 
--- Function to check if a file exists
-local function file_exists(file)
-	local f = io.open(file, "r")
-	if f then
-		f:close()
-		return true
-	else
-		return false
-	end
-end
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 󰈔 Session Management
+-- ─────────────────────────────────────────────────────────────────────────────
 
--- Path to the session file
+-- Restore a local session file if one exists in the current working directory.
+-- This preserves the existing session workflow from the previous config.
 local session_file = ".session.vim"
-
--- Check if the session file exists in the current directory
-if file_exists(session_file) then
-	-- Source the session file
-	vim.cmd("source " .. session_file)
+local f = io.open(session_file, "r")
+if f then
+  f:close()
+  vim.cmd("source " .. session_file)
 end
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
